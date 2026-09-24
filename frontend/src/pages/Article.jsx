@@ -1,11 +1,10 @@
 import { useEffect, useState } from "react";
 import { Link, useParams } from "react-router-dom";
-import { ArrowLeft, MapPin, Clock, ExternalLink, ShieldCheck } from "lucide-react";
+import { ArrowLeft, MapPin, Clock, ShieldCheck } from "lucide-react";
 import { api, mediaUrl, timeAgo } from "@/lib/api";
 import { useLang } from "@/context/LanguageContext";
 import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
-import { Button } from "@/components/ui/button";
 
 export default function Article() {
   const { id } = useParams();
@@ -55,12 +54,6 @@ export default function Article() {
             <p key={i}>{p}</p>
           ))}
         </article>
-
-        {item.source_url && (
-          <a href={item.source_url} target="_blank" rel="noopener noreferrer" className="inline-block mt-6" data-testid="article-source-link">
-            <Button variant="outline" className="gap-2"><ExternalLink className="h-4 w-4" />{t("originalSource")}</Button>
-          </a>
-        )}
       </main>
       <Footer />
     </div>

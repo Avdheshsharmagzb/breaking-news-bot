@@ -159,7 +159,7 @@ const AdminRow = ({ item, lang, t, cats, onStatus, onRemove, onEdited }) => {
           <span className="bg-[#FEF2F2] text-[#B91C1C] font-semibold px-2 py-0.5 rounded-sm">{item.category_hi}</span>
           {item.region && <span className="inline-flex items-center gap-1"><MapPin className="h-3 w-3" />{item.region}</span>}
           <span className="inline-flex items-center gap-1"><Clock className="h-3 w-3" />{timeAgo(item.published_at, lang)}</span>
-          <span>· {item.source}</span>
+          <span>· {item.origin || item.source}</span>
           {item.is_manual && <span className="text-[#B91C1C] font-semibold">✎ {t("manual")}</span>}
         </div>
         <h3 className="font-serif font-bold text-slate-900 leading-snug">{item.title}</h3>

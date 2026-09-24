@@ -49,7 +49,8 @@ class NewsItem(BaseModel):
     title: str
     summary: str = ""
     content: str = ""
-    source: str = ""
+    source: str = "गाजियाबाद टाइम्स"
+    origin: str = ""
     source_url: str = ""
     image_url: Optional[str] = None
     category: str = "rashtriya"
@@ -170,7 +171,8 @@ async def run_fetch() -> dict:
                 title=title,
                 summary=summary or title,
                 content=summary or title,
-                source=source_from_entry(entry, raw_title),
+                source="गाजियाबाद टाइम्स",
+                origin=source_from_entry(entry, raw_title),
                 source_url=link,
                 image_url=extract_image(entry),
                 category=category,
@@ -274,14 +276,14 @@ async def admin_stats():
 async def admin_news(status: str = "Pending_Review", source: Optional[str] = None, limit: int = 200):
     query = {"status": status}
     if source and source != "all":
-        query["source"] = source
+        query["origin"] = source
     docs = await db.news.find(query, {"dedup_key": 0}).sort("published_at", -1).to_list(limit)
     return [to_public(d) for d in docs]
 
 
 @api_router.get("/admin/sources")
 async def admin_sources():
-    return sorted([s for s in await db.news.distinct("source") if s])
+    return sorted([s for s in await db.news.distinct("origin") if s])
 
 
 @api_router.post("/admin/fetch")
@@ -294,12 +296,24 @@ async def admin_fetch():
 async def set_status(item_id: str, status: str = Query(...)):
     if status not in ("Pending_Review", "Approved", "Rejected"):
         raise HTTPException(status_code=400, detail="Invalid status")
-    res = await db.news.update_one(
-        {"id": item_id},
-        {"$set": {"status": status, "updated_at": datetime.now(timezone.utc).isoformat()}},
-    )
-    if res.matched_count == 0:
+    doc = await db.news.find_one({"id": item_id})
+    if not doc:
         raise HTTPException(status_code=404, detail="News not found")
+    updates = {"status": status, "updated_at": datetime.now(timezone.utc).isoformat()}
+    # On approval: auto-rewrite headline + body to journalistic Hindi and publish under own brand.
+    if status == "Approved" and not doc.get("ai_enhanced"):
+        updates["source"] = "गाजियाबाद टाइम्स"
+        try:
+            rw = await ai_rewrite(doc.get("title", ""), doc.get("content") or doc.get("summary", ""))
+            updates.update({
+                "title": rw["title"],
+                "summary": rw["summary"] or doc.get("summary", ""),
+                "content": rw["content"],
+                "ai_enhanced": True,
+            })
+        except Exception as e:
+            logger.warning(f"approve rewrite failed {item_id}: {e}")
+    await db.news.update_one({"id": item_id}, {"$set": updates})
     return {"ok": True, "status": status}
 
 
