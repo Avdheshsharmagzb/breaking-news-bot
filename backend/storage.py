@@ -29,7 +29,8 @@ def init_storage(force: bool = False):
     global storage_key
     if storage_key and not force:
         return storage_key
-    resp = requests.post(f"{STORAGE_URL}/init", json={"emergent_key": EMERGENT_KEY}, timeout=30)
+    key_val = EMERGENT_KEY or os.environ.get("EMERGENT_LLM_KEY")
+    resp = requests.post(f"{STORAGE_URL}/init", json={"emergent_key": key_val}, timeout=30)
     resp.raise_for_status()
     storage_key = resp.json()["storage_key"]
     return storage_key

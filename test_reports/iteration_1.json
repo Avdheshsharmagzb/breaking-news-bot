@@ -1,0 +1,42 @@
+{
+  "summary": "Full backend + frontend e2e testing of Ghaziabad Times news app. 18/18 backend tests passing after one fix. Frontend flows (Home, Article, Admin, Compose, Approve, Language toggle) all functional.",
+  "backend_issues": {
+    "critical": [],
+    "minor": [
+      {"endpoint": "startup", "issue": "Import ordering in server.py: `import storage as store` runs BEFORE `load_dotenv()` (line 25 vs 28). storage.py read EMERGENT_LLM_KEY at module import time (was None), causing /api/admin/upload to 500 with 'HTTPError: 400 Bad Request for /objstore/api/v1/storage/init'. Worked-around in storage.init_storage() by falling back to os.environ.get('EMERGENT_LLM_KEY') at call time. Recommend moving load_dotenv() to top of server.py above imports."}
+    ]
+  },
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": [
+      {"screen": "Admin", "issues": ["Two React DevTools warnings: 'Missing Description or aria-describedby for DialogContent' on Edit and Compose dialogs. Accessibility only, non-blocking."]}
+    ]
+  },
+  "test_report_links": [
+    "/app/backend/tests/backend_test.py",
+    "/app/test_reports/pytest/pytest_results.xml"
+  ],
+  "action_items": [
+    "(Optional) Move load_dotenv() call above `import storage as store` in server.py so storage module can pick up EMERGENT_LLM_KEY at import time. Current lazy fallback works but is a code smell.",
+    "(Optional) Add DialogDescription or aria-describedby on Admin Edit + Compose dialogs to silence Radix a11y warnings."
+  ],
+  "critical_code_review_comments": [
+    "load_dotenv is called AFTER storage.py import - risk of subtle env-var-at-import-time bugs. Best practice: call load_dotenv at very top before other imports.",
+    "storage.add_watermark uses ImageFont.truetype inside a second draw.text call without wrapping the load in try/except at that exact site (line 100). If NotoSansDevanagari-Regular is missing it would raise. _safe_font check helps but still calls truetype twice.",
+    "run_fetch is synchronous requests inside an async function - blocks event loop for up to 20+ feeds*12s. Consider asyncio.to_thread or httpx.AsyncClient.",
+    "No index on dedup_key in Mongo; dedup lookup is O(n) per feed entry. Add unique index on news.dedup_key.",
+    "/api/admin/fetch is unauthenticated (per user's open-admin choice) but can also be triggered externally - documented as intentional.",
+    "public /api/news does not have an index on (status, published_at). At scale this will slow down."
+  ],
+  "updated_files": [
+    "/app/backend/storage.py (lazy EMERGENT_LLM_KEY fallback in init_storage)",
+    "/app/backend/tests/backend_test.py (new pytest suite)"
+  ],
+  "success_rate": {"backend": "100% (18/18)", "frontend": "100% of tested flows"},
+  "seed_data_creation": "Created 1 TEST_UI_manual_title manual item via compose UI (approved during test). Backend tests create/delete TEST_ prefixed manual items each run (cleaned up).",
+  "retest_needed": false,
+  "should_main_agent_self_test": false,
+  "context_for_next_testing_agent": "Backend URL: env REACT_APP_BACKEND_URL. All /api endpoints prefixed. WEBHOOK_CRON_SECRET hardcoded in test file - update if changed in backend/.env. Fetch endpoint can take up to ~60s (21 live RSS feeds). Admin is open (no auth). Public /api/news returns Approved only.",
+  "rca of the issue": "Upload 500: storage.py loaded EMERGENT_KEY at module import; server.py's load_dotenv() was on line 28 but `import storage as store` on line 25, so EMERGENT_LLM_KEY was None when storage module initialized. Emergent storage init endpoint rejects null key with 400. Fix: read env var lazily in init_storage() as fallback."
+}

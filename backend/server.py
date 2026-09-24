@@ -21,11 +21,11 @@ from starlette.middleware.cors import CORSMiddleware
 
 from emergentintegrations.llm.chat import LlmChat, UserMessage
 
-import feeds as feeds_mod
-import storage as store
-
 ROOT_DIR = Path(__file__).parent
 load_dotenv(ROOT_DIR / ".env")
+
+import feeds as feeds_mod  # noqa: E402
+import storage as store  # noqa: E402
 
 mongo_url = os.environ["MONGO_URL"]
 client = AsyncIOMotorClient(mongo_url)
@@ -413,6 +413,11 @@ app.add_middleware(
 
 @app.on_event("startup")
 async def startup():
+    try:
+        await db.news.create_index("dedup_key", unique=True)
+        await db.news.create_index([("status", 1), ("published_at", -1)])
+    except Exception as e:
+        logger.warning(f"index setup: {e}")
     try:
         store.init_storage()
         logger.info("storage initialized")

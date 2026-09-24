@@ -13,7 +13,7 @@ import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogTrigger, DialogFooter } from "@/components/ui/dialog";
 
 const STATUS = { Pending_Review: "pending", Approved: "approved", Rejected: "rejected" };
 
@@ -199,7 +199,9 @@ const EditDialog = ({ item, cats, t, onEdited }) => {
         <Button size="sm" variant="outline" className="h-8 gap-1" data-testid={`edit-${item.id}`}><Pencil className="h-3.5 w-3.5" />{t("edit")}</Button>
       </DialogTrigger>
       <DialogContent className="max-w-lg">
-        <DialogHeader><DialogTitle>{t("edit")}</DialogTitle></DialogHeader>
+        <DialogHeader><DialogTitle>{t("edit")}</DialogTitle>
+          <DialogDescription>{item.category_hi} · {item.source}</DialogDescription>
+        </DialogHeader>
         <div className="space-y-3">
           <div><Label>{t("fTitle")}</Label><Input value={form.title} onChange={(e) => setForm({ ...form, title: e.target.value })} data-testid="edit-title" /></div>
           <div><Label>{t("fSummary")}</Label><Textarea value={form.summary} onChange={(e) => setForm({ ...form, summary: e.target.value })} rows={2} data-testid="edit-summary" /></div>
@@ -264,7 +266,9 @@ const ComposeDialog = ({ cats, onDone }) => {
         <Button className="bg-[#0F172A] hover:bg-[#1e293b] gap-2" data-testid="compose-btn"><PenLine className="h-4 w-4" />{t("compose")}</Button>
       </DialogTrigger>
       <DialogContent className="max-w-xl max-h-[90vh] overflow-y-auto">
-        <DialogHeader><DialogTitle>{t("composeTitle")}</DialogTitle></DialogHeader>
+        <DialogHeader><DialogTitle>{t("composeTitle")}</DialogTitle>
+          <DialogDescription>{t("watermarkNote")}</DialogDescription>
+        </DialogHeader>
         <div className="space-y-3">
           <div><Label>{t("fTitle")}</Label><Input value={form.title} onChange={(e) => setForm({ ...form, title: e.target.value })} data-testid="compose-title" /></div>
           <div><Label>{t("fContent")}</Label><Textarea value={form.content} onChange={(e) => setForm({ ...form, content: e.target.value })} rows={6} placeholder="अपनी खबर यहाँ कॉपी-पेस्ट करें..." data-testid="compose-content" /></div>
