@@ -1,0 +1,23 @@
+.App { text-align: left; }
+
+@keyframes ticker {
+  0% { transform: translateX(0); }
+  100% { transform: translateX(-50%); }
+}
+
+.ticker-track {
+  display: inline-block;
+  animation: ticker 40s linear infinite;
+}
+
+::selection {
+  background: #DC2626;
+  color: #fff;
+}
+
+.line-clamp-2 {
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}

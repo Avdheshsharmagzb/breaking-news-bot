@@ -1,0 +1,95 @@
+{
+  "project_name": "गाजियाबाद टाइम्स (Ghaziabad Times)",
+  "app_type": "hybrid_fullstack",
+  "brand_identity": {
+    "name_hindi": "गाजियाबाद टाइम्स",
+    "name_english": "Ghaziabad Times",
+    "tagline_hindi": "गाजियाबाद, नोएडा और उत्तर प्रदेश का निष्पक्ष एवं विश्वसनीय समाचार पत्र",
+    "watermark_text": "गाजियाबाद टाइम्स",
+    "regional_focus": [
+      "Ghaziabad",
+      "Noida",
+      "Greater Noida",
+      "Meerut",
+      "Hapur",
+      "Bulandshahr",
+      "Baghpat",
+      "Delhi NCR",
+      "UP Bureaucracy & Governance"
+    ]
+  },
+  "typography": {
+    "headline_fonts": [
+      "Rozha One",
+      "Martel",
+      "Noto Serif Devanagari",
+      "Cinzel"
+    ],
+    "body_fonts": [
+      "Noto Sans Devanagari",
+      "Plus Jakarta Sans",
+      "Outfit"
+    ],
+    "mono_fonts": [
+      "JetBrains Mono"
+    ],
+    "rules": {
+      "headline_classes": "font-serif tracking-tight font-bold text-slate-900 dark:text-slate-100",
+      "devanagari_body": "font-sans leading-relaxed text-slate-800 dark:text-slate-200",
+      "category_pill": "uppercase font-semibold text-xs tracking-wider",
+      "max_h1_size": "text-4xl sm:text-5xl lg:text-6xl"
+    }
+  },
+  "colors": {
+    "primary": "#DC2626",
+    "primary_dark": "#B91C1C",
+    "primary_light": "#FEF2F2",
+    "secondary": "#0F172A",
+    "accent_gold": "#D97706",
+    "background_paper": "#FAF9F6",
+    "card_border": "rgba(226, 232, 240, 0.8)",
+    "status_colors": {
+      "pending_review": {
+        "bg": "bg-amber-50 text-amber-800 border-amber-300 dark:bg-amber-950/40 dark:text-amber-300 dark:border-amber-800",
+        "badge": "Amber"
+      },
+      "approved": {
+        "bg": "bg-emerald-50 text-emerald-800 border-emerald-300 dark:bg-emerald-950/40 dark:text-emerald-300 dark:border-emerald-800",
+        "badge": "Emerald"
+      },
+      "rejected": {
+        "bg": "bg-rose-50 text-rose-800 border-rose-300 dark:bg-rose-950/40 dark:text-rose-300 dark:border-rose-800",
+        "badge": "Rose"
+      }
+    }
+  },
+  "ui_components": {
+    "header": {
+      "style": "Classic Editorial Masthead with Date, Weather, Language Switcher, Breaking News Ticker and Glassmorphism navigation bar",
+      "hindi_english_toggle": "Top-right pill button with smooth transition state (हिंदी | English)"
+    },
+    "breaking_news_ticker": {
+      "style": "High-visibility Crimson Red band (`bg-red-600 text-white`) with auto-scrolling news headlines, pause-on-hover, and direct article link."
+    },
+    "admin_dashboard": {
+      "style": "High-density editorial control room with KPI counters, tabbed views (Pending Review, Approved, Rejected), source filters, auto-refresh toggle, and single-click Approve/Reject/Edit actions."
+    },
+    "manual_composer": {
+      "style": "Rich story draft editor with instant photo watermark preview ('गाजियाबाद टाइम्स') and AI Hindi Journalistic Rewrite trigger."
+    }
+  },
+  "image_urls": {
+    "newspaper_press": "https://images.pexels.com/photos/158651/news-newsletter-newspaper-information-158651.jpeg?auto=compress&cs=tinysrgb&dpr=2&h=650&w=940",
+    "journalist_reading": "https://images.pexels.com/photos/7618405/pexels-photo-7618405.jpeg?auto=compress&cs=tinysrgb&dpr=2&h=650&w=940",
+    "ghaziabad_noida_skyline": "https://images.unsplash.com/photo-1564506414752-a73fbe0c6b00?crop=entropy&cs=srgb&fm=jpg&q=85",
+    "delhi_rashtrapati_bhavan": "https://images.pexels.com/photos/19883686/pexels-photo-19883686.jpeg?auto=compress&cs=tinysrgb&dpr=2&h=650&w=940",
+    "historic_governance_building": "https://images.pexels.com/photos/2573473/pexels-photo-2573473.jpeg?auto=compress&cs=tinysrgb&dpr=2&h=650&w=940"
+  },
+  "instructions_to_main_agent": [
+    "Strictly follow 8-hour auto-fetch news constraint and store with status 'Pending_Review'.",
+    "Ensure Hindi is the default language with seamless Hindi/English toggle using state context.",
+    "Watermark image upload feature must render 'गाजियाबाद टाइम्स' at the bottom-right corner of news photos.",
+    "Add 'data-testid' attributes to all key interactive elements (buttons, inputs, tabs, filter dropdowns, news cards).",
+    "Maintain responsive Swiss-Editorial typography scale with high contrast and proper mobile padding."
+  ]
+}

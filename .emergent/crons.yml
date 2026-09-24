@@ -1,0 +1,8 @@
+crons:
+  - name: fetch-news
+    description: "Auto-fetches breaking news from public RSS feeds every 30 minutes and saves fresh items as Pending_Review"
+    cron: "*/30 * * * *"
+    endpoint: "{{BASE_URL}}/api/cron/fetch-news"
+    method: POST
+    # Cron endpoints must ack 2xx immediately; enqueue/background the actual work.
+    enabled: true
