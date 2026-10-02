@@ -49,6 +49,12 @@ export default function Article() {
           </figure>
         )}
 
+        {item.video_url && (
+          <figure className="mt-5">
+            <video src={mediaUrl(item.video_url)} controls className="w-full rounded-sm border border-slate-200 bg-black" data-testid="article-video" />
+          </figure>
+        )}
+
         <article className="mt-5 space-y-4 text-[17px] leading-8 text-slate-800" data-testid="article-content">
           {(item.content || item.summary).split("\n").filter(Boolean).map((p, i) => (
             <p key={i}>{p}</p>

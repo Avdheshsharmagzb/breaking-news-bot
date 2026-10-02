@@ -2,7 +2,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { Link } from "react-router-dom";
 import { toast } from "sonner";
 import {
-  RefreshCw, Check, X, Pencil, Trash2, Sparkles, Upload, PenLine, ArrowLeft, Clock, MapPin, Newspaper,
+  RefreshCw, Check, X, Pencil, Trash2, Sparkles, Upload, PenLine, ArrowLeft, Clock, MapPin, Newspaper, Mic, Square, Video,
 } from "lucide-react";
 import { api, mediaUrl, timeAgo } from "@/lib/api";
 import { useLang } from "@/context/LanguageContext";
@@ -225,9 +225,17 @@ const ComposeDialog = ({ cats, onDone }) => {
   const [form, setForm] = useState({ title: "", summary: "", content: "", category: "ghaziabad", region: "गाजियाबाद", image_url: null });
   const [enhancing, setEnhancing] = useState(false);
   const [uploading, setUploading] = useState(false);
+  const [videoUploading, setVideoUploading] = useState(false);
+  const [recording, setRecording] = useState(false);
+  const [transcribing, setTranscribing] = useState(false);
   const [aiDone, setAiDone] = useState(false);
+  const recorderRef = useRef(null);
+  const chunksRef = useRef([]);
 
-  const reset = () => { setForm({ title: "", summary: "", content: "", category: "ghaziabad", region: "गाजियाबाद", image_url: null }); setAiDone(false); };
+  const reset = () => {
+    setForm({ title: "", summary: "", content: "", category: "ghaziabad", region: "गाजियाबाद", image_url: null, video_url: null });
+    setAiDone(false);
+  };
 
   const enhance = async () => {
     if (!form.title && !form.content) { toast.error("शीर्षक या विवरण भरें"); return; }
@@ -240,8 +248,7 @@ const ComposeDialog = ({ cats, onDone }) => {
     } catch { toast.error("AI सुधार विफल"); } finally { setEnhancing(false); }
   };
 
-  const upload = async (e) => {
-    const file = e.target.files?.[0];
+  const uploadImageFile = async (file) => {
     if (!file) return;
     setUploading(true);
     const fd = new FormData();
@@ -251,6 +258,56 @@ const ComposeDialog = ({ cats, onDone }) => {
       setForm((f) => ({ ...f, image_url: r.data.image_url }));
       toast.success(t("watermarkNote"));
     } catch { toast.error("अपलोड विफल"); } finally { setUploading(false); }
+  };
+
+  const onPaste = (e) => {
+    const items = e.clipboardData?.items || [];
+    for (const it of items) {
+      if (it.type.startsWith("image/")) {
+        const file = it.getAsFile();
+        if (file) { toast.info("फोटो पेस्ट हो रही है..."); uploadImageFile(file); }
+      }
+    }
+  };
+
+  const uploadVideo = async (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setVideoUploading(true);
+    const fd = new FormData();
+    fd.append("file", file);
+    try {
+      const r = await api.post("/admin/upload-video", fd, { headers: { "Content-Type": "multipart/form-data" } });
+      setForm((f) => ({ ...f, video_url: r.data.video_url }));
+      toast.success("वीडियो अपलोड हो गया");
+    } catch (err) { toast.error(err?.response?.data?.detail || "वीडियो अपलोड विफल"); } finally { setVideoUploading(false); }
+  };
+
+  const toggleRecord = async () => {
+    if (recording) { recorderRef.current?.stop(); return; }
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      const mr = new MediaRecorder(stream);
+      chunksRef.current = [];
+      mr.ondataavailable = (ev) => { if (ev.data.size) chunksRef.current.push(ev.data); };
+      mr.onstop = async () => {
+        stream.getTracks().forEach((tk) => tk.stop());
+        setRecording(false);
+        const blob = new Blob(chunksRef.current, { type: "audio/webm" });
+        setTranscribing(true);
+        const fd = new FormData();
+        fd.append("file", blob, "speech.webm");
+        try {
+          const r = await api.post("/admin/transcribe", fd, { headers: { "Content-Type": "multipart/form-data" } });
+          const text = (r.data.text || "").trim();
+          if (text) { setForm((f) => ({ ...f, content: f.content ? `${f.content} ${text}` : text })); toast.success("बोली गई बात जोड़ दी गई"); }
+          else toast.info("कोई आवाज़ नहीं मिली");
+        } catch { toast.error("ट्रांसक्रिप्शन विफल"); } finally { setTranscribing(false); }
+      };
+      mr.start();
+      recorderRef.current = mr;
+      setRecording(true);
+    } catch { toast.error("माइक्रोफोन की अनुमति नहीं मिली"); }
   };
 
   const submit = async () => {
@@ -271,7 +328,16 @@ const ComposeDialog = ({ cats, onDone }) => {
         </DialogHeader>
         <div className="space-y-3">
           <div><Label>{t("fTitle")}</Label><Input value={form.title} onChange={(e) => setForm({ ...form, title: e.target.value })} data-testid="compose-title" /></div>
-          <div><Label>{t("fContent")}</Label><Textarea value={form.content} onChange={(e) => setForm({ ...form, content: e.target.value })} rows={6} placeholder="अपनी खबर यहाँ कॉपी-पेस्ट करें..." data-testid="compose-content" /></div>
+          <div>
+            <div className="flex items-center justify-between mb-1">
+              <Label>{t("fContent")}</Label>
+              <Button type="button" size="sm" variant={recording ? "destructive" : "outline"} onClick={toggleRecord} disabled={transcribing}
+                className="h-7 gap-1 text-xs" data-testid="speech-to-text-btn">
+                {recording ? <><Square className="h-3 w-3" />{t("stopRec")}</> : transcribing ? <>{t("transcribing")}</> : <><Mic className="h-3.5 w-3.5" />{t("speak")}</>}
+              </Button>
+            </div>
+            <Textarea value={form.content} onChange={(e) => setForm({ ...form, content: e.target.value })} onPaste={onPaste} rows={6} placeholder={t("contentPlaceholder")} data-testid="compose-content" />
+          </div>
           <Button type="button" variant="outline" onClick={enhance} disabled={enhancing} className="w-full gap-2 border-[#D97706] text-[#B45309] hover:bg-amber-50" data-testid="ai-enhance-btn">
             <Sparkles className={`h-4 w-4 ${enhancing ? "animate-pulse" : ""}`} />{enhancing ? t("enhancing") : t("aiEnhance")}
           </Button>
@@ -285,14 +351,23 @@ const ComposeDialog = ({ cats, onDone }) => {
             </div>
             <div><Label>{t("fRegion")}</Label><Input value={form.region} onChange={(e) => setForm({ ...form, region: e.target.value })} data-testid="compose-region" /></div>
           </div>
-          <div>
+          <div onPaste={onPaste}>
             <Label>{t("fPhoto")}</Label>
             <label className="mt-1 flex items-center justify-center gap-2 border-2 border-dashed border-slate-300 rounded-sm py-4 cursor-pointer hover:border-[#DC2626] transition-colors" data-testid="compose-upload-label">
               <Upload className="h-4 w-4 text-slate-400" />
-              <span className="text-sm text-slate-500">{uploading ? "..." : t("fPhoto")}</span>
-              <input type="file" accept="image/*" onChange={upload} className="hidden" data-testid="compose-upload-input" />
+              <span className="text-sm text-slate-500 text-center px-2">{uploading ? "..." : t("pasteHint")}</span>
+              <input type="file" accept="image/*" onChange={(e) => uploadImageFile(e.target.files?.[0])} className="hidden" data-testid="compose-upload-input" />
             </label>
             {form.image_url && <img src={mediaUrl(form.image_url)} alt="" className="mt-2 w-full rounded-sm border border-slate-200" data-testid="compose-image-preview" />}
+          </div>
+          <div>
+            <Label>{t("fVideo")}</Label>
+            <label className="mt-1 flex items-center justify-center gap-2 border-2 border-dashed border-slate-300 rounded-sm py-4 cursor-pointer hover:border-[#DC2626] transition-colors" data-testid="compose-video-label">
+              <Video className="h-4 w-4 text-slate-400" />
+              <span className="text-sm text-slate-500">{videoUploading ? "अपलोड हो रहा है..." : t("fVideo")}</span>
+              <input type="file" accept="video/*" onChange={uploadVideo} className="hidden" data-testid="compose-video-input" />
+            </label>
+            {form.video_url && <video src={mediaUrl(form.video_url)} controls className="mt-2 w-full rounded-sm border border-slate-200 bg-black" data-testid="compose-video-preview" />}
           </div>
         </div>
         <DialogFooter><Button onClick={submit} className="bg-[#DC2626] hover:bg-[#B91C1C]" data-testid="compose-submit">{t("publish")}</Button></DialogFooter>

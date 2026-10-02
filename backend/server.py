@@ -5,6 +5,7 @@ import json
 import logging
 import os
 import re
+import tempfile
 import uuid
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
@@ -20,6 +21,7 @@ from pydantic import BaseModel, Field
 from starlette.middleware.cors import CORSMiddleware
 
 from emergentintegrations.llm.chat import LlmChat, UserMessage
+from emergentintegrations.llm.openai import OpenAISpeechToText
 
 ROOT_DIR = Path(__file__).parent
 load_dotenv(ROOT_DIR / ".env")
@@ -53,6 +55,7 @@ class NewsItem(BaseModel):
     origin: str = ""
     source_url: str = ""
     image_url: Optional[str] = None
+    video_url: Optional[str] = None
     category: str = "rashtriya"
     category_hi: str = "राष्ट्रीय"
     region: str = ""
@@ -77,6 +80,7 @@ class ManualNews(BaseModel):
     category: str = "ghaziabad"
     region: str = "गाजियाबाद"
     image_url: Optional[str] = None
+    video_url: Optional[str] = None
     ai_enhanced: bool = False
 
 
@@ -371,6 +375,57 @@ async def upload_image(file: UploadFile = File(...)):
     return {"image_url": f"/api/files/{result['path']}"}
 
 
+VIDEO_MIME = {
+    "mp4": "video/mp4", "webm": "video/webm", "mov": "video/quicktime",
+    "avi": "video/x-msvideo", "mkv": "video/x-matroska", "m4v": "video/x-m4v",
+}
+
+
+@api_router.post("/admin/upload-video")
+async def upload_video(file: UploadFile = File(...)):
+    data = await file.read()
+    if len(data) > 60 * 1024 * 1024:
+        raise HTTPException(status_code=400, detail="वीडियो 60MB से छोटा होना चाहिए")
+    ext = (file.filename or "video.mp4").rsplit(".", 1)[-1].lower()
+    ct = VIDEO_MIME.get(ext, file.content_type or "video/mp4")
+    path = f"{store.APP_NAME}/videos/{uuid.uuid4()}.{ext}"
+    result = store.put_object(path, data, ct)
+    await db.files.insert_one({
+        "id": str(uuid.uuid4()),
+        "storage_path": result["path"],
+        "original_filename": file.filename,
+        "content_type": ct,
+        "is_deleted": False,
+        "created_at": datetime.now(timezone.utc).isoformat(),
+    })
+    return {"video_url": f"/api/files/{result['path']}"}
+
+
+@api_router.post("/admin/transcribe")
+async def transcribe(file: UploadFile = File(...)):
+    """Hindi speech-to-text via OpenAI whisper-1 (Emergent key)."""
+    data = await file.read()
+    ext = "webm"
+    fn = (file.filename or "").lower()
+    for e in ("webm", "wav", "mp3", "m4a", "mp4", "mpeg", "mpga"):
+        if fn.endswith(e):
+            ext = e
+            break
+    tmp = tempfile.NamedTemporaryFile(suffix=f".{ext}", delete=False)
+    tmp.write(data)
+    tmp.close()
+    try:
+        stt = OpenAISpeechToText(api_key=EMERGENT_LLM_KEY)
+        with open(tmp.name, "rb") as af:
+            resp = await stt.transcribe(file=af, model="whisper-1", language="hi", response_format="json")
+        return {"text": getattr(resp, "text", "") or ""}
+    except Exception as e:
+        logger.error(f"transcribe failed: {e}")
+        raise HTTPException(status_code=400, detail="ट्रांसक्रिप्शन विफल")
+    finally:
+        os.unlink(tmp.name)
+
+
 @api_router.post("/admin/news/manual")
 async def create_manual(payload: ManualNews):
     lbl = feeds_mod.CATEGORY_LABELS.get(payload.category, {"hi": payload.region})
@@ -381,6 +436,7 @@ async def create_manual(payload: ManualNews):
         source="गाजियाबाद टाइम्स",
         source_url="",
         image_url=payload.image_url,
+        video_url=payload.video_url,
         category=payload.category,
         category_hi=lbl.get("hi", ""),
         region=payload.region,
