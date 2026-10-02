@@ -31,6 +31,12 @@ Build an automated news fetching module that pulls breaking news/latest updates 
 - 30-min cron wired + verified (401 without auth, 200 accepted with auth).
 - Full test pass: 18/18 backend, all frontend flows.
 
+## Implemented (update)
+- Approve-time AI rewrite: on Approve, headline+body rewritten to journalistic Hindi, source branded 'गाजियाबाद टाइम्स'; original publisher kept as `origin` (admin source-filter only, never public). [iteration]
+- Admin compose: photo copy-paste (Ctrl+V), typing, Hindi speech-to-text (OpenAI whisper-1 via Emergent key, `/api/admin/transcribe`), and video upload (`/api/admin/upload-video`, 60MB cap). Article page renders <video>. [iteration_2: 6/6 pass]
+- Branded CSS gradient fallback tiles per category when a news item has no image / image fails (no broken images). [iteration_3]
+- Legal footer on all public pages: formal Hindi "अस्वीकरण एवं विधिक सूचना" + exclusive jurisdiction clause (courts at Ghaziabad, UP only), bilingual via language toggle. [iteration_3]
+
 ## Backlog / Next
 - P1: Per-article "Translate to English" via LLM (content currently source-language; UI chrome toggles).
 - P2: Auto-approve rules / bulk approve; category-specific placeholder images; full-article scraping.
