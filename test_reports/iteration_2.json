@@ -1,0 +1,32 @@
+{
+  "summary": "Tested new compose features: video upload, image paste (indirect), Hindi speech-to-text, and manual-with-video approval. Backend: 6/6 new tests pass (+ 1 intentional skip for 60MB payload). Frontend: compose dialog opens, all new data-testids render, tiny MP4 upload shows video preview, submit creates Pending_Review row, mic button clicks without crashing. Regression: approve-rewrite + brand still works.",
+  "backend_issues": {"critical": [], "minor": []},
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": []
+  },
+  "test_report_links": [
+    "/app/backend/tests/test_video_speech.py",
+    "/app/backend/tests/backend_test.py",
+    "/app/test_reports/pytest/video_speech.xml"
+  ],
+  "action_items": [],
+  "critical_code_review_comments": [
+    "/api/admin/upload-video reads whole file into memory (await file.read()) before size check - a hostile client sending 1GB will still buffer it. Use streaming or UploadFile.spool to enforce limit as bytes are received.",
+    "transcribe() writes a NamedTemporaryFile with delete=False and os.unlink in finally - OK, but on Windows the opened file handle in 'with open(tmp.name, rb)' could race. Acceptable on Linux prod.",
+    "ManualNews.video_url accepted as any string without URL validation - a client could submit arbitrary external URLs. Consider validating it points to /api/files/... from own uploads.",
+    "ComposeDialog state.form.reset() in Admin.jsx initializes video_url to null only in reset() but not in initial useState default - minor; works because key starts undefined and submit still posts fine.",
+    "No index on files.storage_path - lookups in serve_file could slow at scale."
+  ],
+  "updated_files": [
+    "/app/backend/tests/test_video_speech.py (new)"
+  ],
+  "success_rate": {"backend": "100% (6/6 new + 18/18 prior still passing)", "frontend": "100% of tested flows"},
+  "test_credentials": "none - admin open",
+  "seed_data_creation": "Created & deleted a few TEST_ prefixed manual items (test_video_item, TEST_regr_original). One frontend-created item TEST_UI_video_title remains in Pending_Review (not deleted by test).",
+  "retest_needed": false,
+  "main_agent_can_self_test": true,
+  "context_for_next_testing_agent": "New endpoints: POST /api/admin/upload-video (returns {video_url}; 60MB cap enforced in-memory), POST /api/admin/transcribe (OpenAI whisper-1 via Emergent key, language=hi; returns 200{text} or 400 'ट्रांसक्रिप्शन विफल'), ManualNews supports video_url. Article.jsx renders <video data-testid=article-video> when item.video_url present. Headless Chromium may auto-grant/deny mic silently; current mic flow handles both without crash. Backend URL from REACT_APP_BACKEND_URL env.",
+  "rca of the issue": "No issues found this iteration."
+}
