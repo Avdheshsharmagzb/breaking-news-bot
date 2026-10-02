@@ -1,30 +1,47 @@
+import { useState } from "react";
 import { Link } from "react-router-dom";
-import { MapPin, Clock } from "lucide-react";
+import { MapPin, Clock, Newspaper } from "lucide-react";
 import { useLang } from "@/context/LanguageContext";
 import { mediaUrl, timeAgo } from "@/lib/api";
 
-const PLACEHOLDERS = {
-  rashtriya: "https://images.pexels.com/photos/19883686/pexels-photo-19883686.jpeg?auto=compress&cs=tinysrgb&dpr=2&h=650&w=940",
-  ghaziabad: "https://images.unsplash.com/photo-1564506414752-a73fbe0c6b00?crop=entropy&cs=srgb&fm=jpg&q=85&w=940",
-  noida: "https://images.unsplash.com/photo-1564506414752-a73fbe0c6b00?crop=entropy&cs=srgb&fm=jpg&q=85&w=940",
-  "up-sarkar": "https://images.pexels.com/photos/2573473/pexels-photo-2573473.jpeg?auto=compress&cs=tinysrgb&dpr=2&h=650&w=940",
-  "paschim-up": "https://images.pexels.com/photos/2573473/pexels-photo-2573473.jpeg?auto=compress&cs=tinysrgb&dpr=2&h=650&w=940",
-  default: "https://images.pexels.com/photos/158651/news-newsletter-newspaper-information-158651.jpeg?auto=compress&cs=tinysrgb&dpr=2&h=650&w=940",
+const CAT_GRADIENTS = {
+  rashtriya: "from-orange-500 via-rose-500 to-red-600",
+  ghaziabad: "from-red-600 via-rose-600 to-slate-800",
+  noida: "from-sky-600 via-blue-600 to-indigo-700",
+  "paschim-up": "from-amber-500 via-orange-600 to-red-700",
+  "up-sarkar": "from-slate-700 via-slate-800 to-red-800",
+  delhi: "from-emerald-600 via-teal-600 to-cyan-700",
+  khel: "from-lime-500 via-green-600 to-emerald-700",
+  cinema: "from-fuchsia-600 via-purple-600 to-indigo-700",
+  shiksha: "from-blue-600 via-indigo-600 to-violet-700",
+  swasthya: "from-teal-500 via-emerald-600 to-green-700",
+  rozgar: "from-amber-600 via-yellow-600 to-orange-700",
+  vyapar: "from-slate-600 via-gray-700 to-slate-900",
+  default: "from-red-600 via-rose-600 to-slate-800",
 };
-
-const img = (item) => mediaUrl(item.image_url) || PLACEHOLDERS[item.category] || PLACEHOLDERS.default;
 
 export const NewsCard = ({ item, size = "md" }) => {
   const { lang } = useLang();
   const large = size === "lg";
+  const src = mediaUrl(item.image_url);
+  const [imgOk, setImgOk] = useState(Boolean(src));
+  const grad = CAT_GRADIENTS[item.category] || CAT_GRADIENTS.default;
 
   return (
     <Link to={`/article/${item.id}`} data-testid={`news-card-${item.id}`}
       className="group block bg-white border border-slate-200 rounded-sm overflow-hidden hover:shadow-lg hover:-translate-y-0.5 transition-all duration-300">
       <div className={`relative overflow-hidden ${large ? "aspect-[16/9]" : "aspect-[4/3]"}`}>
-        <img src={img(item)} alt={item.title} loading="lazy"
-          className="h-full w-full object-cover group-hover:scale-105 transition-transform duration-500" />
-        <span className="absolute top-2 left-2 bg-[#DC2626] text-white text-[10px] font-bold uppercase tracking-wider px-2 py-1 rounded-sm">
+        {src && imgOk ? (
+          <img src={src} alt={item.title} loading="lazy" onError={() => setImgOk(false)}
+            className="h-full w-full object-cover group-hover:scale-105 transition-transform duration-500" />
+        ) : (
+          <div className={`h-full w-full bg-gradient-to-br ${grad} flex flex-col items-center justify-center text-center px-3`}>
+            <Newspaper className="absolute h-24 w-24 text-white/10" />
+            <span className="relative font-serif font-bold text-white drop-shadow-sm leading-tight text-lg sm:text-xl">{item.category_hi}</span>
+            <span className="relative mt-1 text-[10px] tracking-[0.2em] uppercase text-white/80">गाजियाबाद टाइम्स</span>
+          </div>
+        )}
+        <span className="absolute top-2 left-2 z-10 bg-[#DC2626] text-white text-[10px] font-bold uppercase tracking-wider px-2 py-1 rounded-sm">
           {item.category_hi}
         </span>
       </div>

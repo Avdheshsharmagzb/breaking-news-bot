@@ -2,6 +2,10 @@ export const STRINGS = {
   hi: {
     brand: "गाजियाबाद टाइम्स",
     tagline: "गाजियाबाद, नोएडा और उत्तर प्रदेश का विश्वसनीय समाचार",
+    rightsReserved: "सर्वाधिकार सुरक्षित",
+    disclaimerTitle: "अस्वीकरण एवं विधिक सूचना",
+    disclaimerBody: "गाजियाबाद टाइम्स पर प्रकाशित समस्त समाचार विभिन्न सार्वजनिक समाचार स्रोतों तथा आर.एस.एस. फ़ीड्स से संकलित कर, संपादकीय विवेक एवं पत्रकारिता के स्थापित मानकों के अनुरूप पुनर्लेखित एवं संपादित रूप में प्रस्तुत किए जाते हैं। यह पोर्टल किसी भी समाचार की पूर्ण प्रामाणिकता, शुद्धता अथवा सामयिकता की विधिक गारंटी नहीं देता। पाठकगण से विनम्र अनुरोध है कि किसी भी महत्वपूर्ण निर्णय अथवा कार्यवाही से पूर्व संबंधित आधिकारिक स्रोत से स्वतः पुष्टि अवश्य कर लें। प्रकाशित सामग्री में व्यक्त विचार संबंधित लेखकों/स्रोतों के हैं तथा समस्त ट्रेडमार्क एवं सर्वाधिकार उनके संबंधित स्वामियों के पास सुरक्षित हैं। किसी भी त्रुटि, चूक अथवा सामग्री के उपयोग से उत्पन्न किसी भी प्रत्यक्ष या अप्रत्यक्ष हानि हेतु गाजियाबाद टाइम्स, इसका प्रबंधन अथवा संपादक मंडल उत्तरदायी नहीं होगा।",
+    jurisdiction: "विधिक क्षेत्राधिकार: इस पोर्टल एवं इस पर प्रकाशित सामग्री से संबंधित समस्त विवाद, दावे एवं कानूनी कार्यवाहियाँ केवल एवं केवल गाजियाबाद, उत्तर प्रदेश के सक्षम न्यायालयों के अनन्य क्षेत्राधिकार के अधीन होंगी। अन्य किसी भी न्यायालय को इस संबंध में सुनवाई का अधिकार नहीं होगा।",
     breaking: "ताज़ा खबर",
     latest: "ताज़ा समाचार",
     readMore: "पूरा पढ़ें",
@@ -51,6 +55,10 @@ export const STRINGS = {
   en: {
     brand: "Ghaziabad Times",
     tagline: "Trusted news of Ghaziabad, Noida & Uttar Pradesh",
+    rightsReserved: "All rights reserved",
+    disclaimerTitle: "Disclaimer & Legal Notice",
+    disclaimerBody: "All news published on Ghaziabad Times is compiled from various public news sources and RSS feeds, and is presented in a rewritten and edited form in accordance with editorial discretion and established journalistic standards. This portal provides no legal guarantee as to the completeness, accuracy, or timeliness of any news item. Readers are kindly requested to independently verify with the relevant official source before taking any important decision or action. Views expressed in the published content belong to the respective authors/sources, and all trademarks and copyrights remain reserved with their respective owners. Ghaziabad Times, its management, or its editorial board shall not be liable for any direct or indirect loss arising from any error, omission, or use of the content.",
+    jurisdiction: "Legal Jurisdiction: All disputes, claims, and legal proceedings relating to this portal and the content published herein shall be subject exclusively to the competent courts at Ghaziabad, Uttar Pradesh. No other court shall have jurisdiction in this regard.",
     breaking: "BREAKING",
     latest: "Latest News",
     readMore: "Read more",
